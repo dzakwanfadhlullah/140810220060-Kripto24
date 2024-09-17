@@ -1,114 +1,114 @@
 # Dzakwan Fadhlullah - 140810220060
 import numpy as np
 
-# Fungsi untuk mengonversi huruf menjadi angka (A=0, B=1, ..., Z=25)
+# Fungsi untuk mengonversi huruf alfabet menjadi angka
 def letter_to_num(letter):
     return ord(letter.upper()) - ord('A')
 
-# Fungsi untuk mengonversi angka menjadi huruf (0=A, 1=B, ..., 25=Z)
+# Fungsi untuk mengonversi angka menjadi huruf alfabet
 def num_to_letter(num):
-    return chr(num % 26 + ord('A'))
+    return chr((num % 26) + ord('A'))
 
-# Fungsi untuk enkripsi menggunakan Hill Cipher
-def encrypt(plaintext, key_matrix):
-    # Menyesuaikan panjang plaintext sesuai dengan ukuran matriks
-    n = key_matrix.shape[0]
-    plaintext = plaintext.replace(" ", "").upper()
+# Prosedur enkripsi menggunakan algoritma Hill Cipher
+def encrypt(plain_text, key_matrix):
+    # Panjang teks disesuaikan dengan ukuran matriks kunci
+    size = key_matrix.shape[0]
+    plain_text = plain_text.replace(" ", "").upper()
     
-    # Menambahkan 'X' jika panjang plaintext tidak sesuai dengan ukuran matriks
-    while len(plaintext) % n != 0:
-        plaintext += 'X'
+    # Jika panjang teks tidak sesuai dengan matriks, tambahkan karakter pengisi
+    while len(plain_text) % size != 0:
+        plain_text += 'X'
     
-    encrypted_text = ''
+    encrypted_result = ''
     
-    for i in range(0, len(plaintext), n):
-        # Mengonversi blok teks menjadi vektor angka
-        block = np.array([letter_to_num(c) for c in plaintext[i:i+n]])
+    for i in range(0, len(plain_text), size):
+        # Blok teks dikonversi menjadi vektor angka
+        block_vector = np.array([letter_to_num(char) for char in plain_text[i:i+size]])
         
-        # Mengalikan matriks kunci dengan vektor angka
-        cipher_block = np.dot(key_matrix, block) % 26
+        # Kalikan matriks kunci dengan vektor angka
+        cipher_vector = np.dot(key_matrix, block_vector) % 26
         
-        # Mengonversi kembali hasilnya menjadi huruf
-        encrypted_text += ''.join(num_to_letter(num) for num in cipher_block)
+        # Konversi hasil menjadi teks
+        encrypted_result += ''.join(num_to_letter(num) for num in cipher_vector)
     
-    return encrypted_text
+    return encrypted_result
 
-# Fungsi untuk dekripsi Hill Cipher
-def decrypt(ciphertext, key_matrix):
-    # Menyesuaikan panjang ciphertext sesuai dengan ukuran matriks
-    n = key_matrix.shape[0]
-    ciphertext = ciphertext.replace(" ", "").upper()
+# Prosedur dekripsi menggunakan algoritma Hill Cipher
+def decrypt(cipher_text, key_matrix):
+    # Panjang ciphertext disesuaikan dengan ukuran matriks
+    size = key_matrix.shape[0]
+    cipher_text = cipher_text.replace(" ", "").upper()
     
-    # Mencari invers dari matriks kunci dalam modulo 26
-    det = int(np.round(np.linalg.det(key_matrix)))
-    det_inv = pow(det, -1, 26)  # Invers determinan
-    adjugate_matrix = np.round(det * np.linalg.inv(key_matrix)).astype(int) % 26
-    key_inv = (det_inv * adjugate_matrix) % 26
+    # Hitung invers dari matriks kunci
+    determinant = int(round(np.linalg.det(key_matrix)))
+    determinant_inv = pow(determinant, -1, 26)  # Invers modulo 26 dari determinan
+    adjugate_matrix = np.round(determinant * np.linalg.inv(key_matrix)).astype(int) % 26
+    inverse_key_matrix = (determinant_inv * adjugate_matrix) % 26
     
-    decrypted_text = ''
+    decrypted_result = ''
     
-    for i in range(0, len(ciphertext), n):
-        # Mengonversi blok teks menjadi vektor angka
-        block = np.array([letter_to_num(c) for c in ciphertext[i:i+n]])
+    for i in range(0, len(cipher_text), size):
+        # Blok ciphertext dikonversi menjadi vektor angka
+        cipher_vector = np.array([letter_to_num(char) for char in cipher_text[i:i+size]])
         
-        # Mengalikan matriks kunci invers dengan vektor angka
-        plain_block = np.dot(key_inv, block) % 26
+        # Kalikan matriks invers dengan vektor angka
+        plain_vector = np.dot(inverse_key_matrix, cipher_vector) % 26
         
-        # Mengonversi kembali hasilnya menjadi huruf
-        decrypted_text += ''.join(num_to_letter(num) for num in plain_block)
+        # Konversi hasil menjadi teks
+        decrypted_result += ''.join(num_to_letter(num) for num in plain_vector)
     
-    return decrypted_text
+    return decrypted_result
 
-# Fungsi untuk menemukan kunci dari plaintext dan ciphertext
-def find_key(plaintext, ciphertext, n):
-    # Mengonversi plaintext dan ciphertext menjadi blok vektor
-    plaintext_blocks = [np.array([letter_to_num(c) for c in plaintext[i:i+n]]) for i in range(0, len(plaintext), n)]
-    ciphertext_blocks = [np.array([letter_to_num(c) for c in ciphertext[i:i+n]]) for i in range(0, len(ciphertext), n)]
+# Prosedur untuk menemukan kunci dari plaintext dan ciphertext
+def find_key(plain_text, cipher_text, size):
+    # Konversi plaintext dan ciphertext menjadi blok vektor angka
+    plain_blocks = [np.array([letter_to_num(char) for char in plain_text[i:i+size]]) for i in range(0, len(plain_text), size)]
+    cipher_blocks = [np.array([letter_to_num(char) for char in cipher_text[i:i+size]]) for i in range(0, len(cipher_text), size)]
     
-    # Membuat matriks dari blok plaintext dan ciphertext
-    P = np.column_stack(plaintext_blocks)
-    C = np.column_stack(ciphertext_blocks)
+    # Bentuk matriks dari blok plaintext dan ciphertext
+    P_matrix = np.column_stack(plain_blocks)
+    C_matrix = np.column_stack(cipher_blocks)
     
-    # Mencari invers dari matriks P
-    P_inv = np.linalg.inv(P).astype(int) % 26
+    # Hitung invers matriks plaintext
+    P_inv_matrix = np.linalg.inv(P_matrix).astype(int) % 26
     
-    # Mencari matriks kunci: K = C * P^(-1)
-    key_matrix = np.dot(C, P_inv) % 26
+    # Hitung kunci matriks: K = C * P_inv
+    key_matrix = np.dot(C_matrix, P_inv_matrix) % 26
     
     return key_matrix
 
-# Program utama
+# Bagian utama program
 if __name__ == "__main__":
-    choice = input("Pilih operasi (1: Enkripsi, 2: Dekripsi, 3: Temukan Kunci): ")
+    operation = input("Pilih operasi (1: Enkripsi, 2: Dekripsi, 3: Temukan Kunci): ")
     
-    if choice == '1':
-        plaintext = input("Masukkan plaintext: ").upper()
-        print("Masukkan matriks kunci (misal: 2x2 atau 3x3):")
+    if operation == '1':
+        plain_text = input("Masukkan plaintext: ").upper()
+        print("Masukkan matriks kunci (contoh: 2x2 atau 3x3):")
         key_matrix = []
-        size = int(input("Ukuran matriks (misal: 2 untuk 2x2, 3 untuk 3x3): "))
-        for i in range(size):
-            row = list(map(int, input(f"Masukkan baris ke-{i+1} matriks (dipisahkan dengan spasi): ").split()))
+        matrix_size = int(input("Ukuran matriks (contoh: 2 untuk 2x2, 3 untuk 3x3): "))
+        for i in range(matrix_size):
+            row = list(map(int, input(f"Masukkan baris ke-{i+1} matriks (pisahkan dengan spasi): ").split()))
             key_matrix.append(row)
         key_matrix = np.array(key_matrix)
-        print("Ciphertext:", encrypt(plaintext, key_matrix))
+        print("Ciphertext:", encrypt(plain_text, key_matrix))
     
-    elif choice == '2':
-        ciphertext = input("Masukkan ciphertext: ").upper()
+    elif operation == '2':
+        cipher_text = input("Masukkan ciphertext: ").upper()
         print("Masukkan matriks kunci:")
         key_matrix = []
-        size = int(input("Ukuran matriks (misal: 2 untuk 2x2, 3 untuk 3x3): "))
-        for i in range(size):
-            row = list(map(int, input(f"Masukkan baris ke-{i+1} matriks (dipisahkan dengan spasi): ").split()))
+        matrix_size = int(input("Ukuran matriks (contoh: 2 untuk 2x2, 3 untuk 3x3): "))
+        for i in range(matrix_size):
+            row = list(map(int, input(f"Masukkan baris ke-{i+1} matriks (pisahkan dengan spasi): ").split()))
             key_matrix.append(row)
         key_matrix = np.array(key_matrix)
-        print("Plaintext:", decrypt(ciphertext, key_matrix))
+        print("Plaintext:", decrypt(cipher_text, key_matrix))
     
-    elif choice == '3':
-        plaintext = input("Masukkan plaintext: ").upper()
-        ciphertext = input("Masukkan ciphertext: ").upper()
-        size = int(input("Ukuran matriks kunci (misal: 2 untuk 2x2, 3 untuk 3x3): "))
+    elif operation == '3':
+        plain_text = input("Masukkan plaintext: ").upper()
+        cipher_text = input("Masukkan ciphertext: ").upper()
+        matrix_size = int(input("Ukuran matriks kunci (contoh: 2 untuk 2x2, 3 untuk 3x3): "))
         print("Matriks kunci yang ditemukan:")
-        print(find_key(plaintext, ciphertext, size))
+        print(find_key(plain_text, cipher_text, matrix_size))
     
     else:
         print("Pilihan tidak valid!")
